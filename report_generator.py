@@ -1,3 +1,4 @@
+
 import pandas as pd
 from fpdf import FPDF
 
@@ -41,7 +42,27 @@ class PDFReport(FPDF):
             self.multi_cell(0, 10, line)
         self.ln(10)
 
-def generate_pdf_report(analysis, output_file):
+    def add_table(self, title, data):
+        self.set_font('Arial', 'B', 12)
+        self.cell(0, 10, title, 0, 1, 'L')
+        self.ln(5)
+
+        # Table Header
+        self.set_font('Arial', 'B', 10)
+        col_width = self.w / len(data.columns) - 2
+        for column in data.columns:
+            self.cell(col_width, 10, column, 1, 0, 'C')
+        self.ln()
+
+        # Table Rows
+        self.set_font('Arial', '', 10)
+        for _, row in data.iterrows():
+            for value in row:
+                self.cell(col_width, 10, str(value) if pd.notnull(value) else "N/A", 1, 0, 'C')
+            self.ln()
+        self.ln(10)
+
+def generate_pdf_report(data, analysis, output_file):
     pdf = PDFReport()
     pdf.add_page()
 
@@ -53,10 +74,8 @@ def generate_pdf_report(analysis, output_file):
         "\n".join([f"  - {col}: {count}" for col, count in analysis['Missing Values'].items()]),
     ])
 
-    # Add statistics section
-    pdf.add_section("Summary Statistics", [
-        f"{col}: {stats}" for col, stats in analysis['Summary Statistics'].items()
-    ])
+    # Add table section
+    pdf.add_table("Data Table", data)
 
     pdf.output(output_file)
     print(f"PDF report generated: {output_file}")
@@ -74,4 +93,11 @@ if __name__ == "__main__":
         analysis = analyze_data(data)
 
         print("Generating PDF report...")
-        generate_pdf_report(analysis, output_file)
+        generate_pdf_report(data, analysis, output_file)
+
+
+    
+
+
+   
+       
